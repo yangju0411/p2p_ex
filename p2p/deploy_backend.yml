@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-django
+  labels:
+    app: backend-django
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend-django
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        app: backend-django
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - backend-django
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: backend-django
+        image: yangju0411/backend:latest
+        ports:
+          - containerPort: 8000
+        command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+        env:
+        - name: DJANGO_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: secret-backend
+              key: DJANGO_DB_USER
+        - name: DJANGO_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secret-backend
+              key: DJANGO_DB_PASSWORD
+        - name: DJANGO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-backend
+              key: DJANGO_SECRET_KEY
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: config-backend
+              key: TZ
+        - name: DJANGO_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: config-backend
+              key: DJANGO_DEBUG
+        - name: DJANGO_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: config-backend
+              key: DJANGO_DB_NAME
+        - name: DJANGO_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: config-backend
+              key: DJANGO_DB_HOST
+        - name: DJANGO_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: config-backend
+              key: DJANGO_DB_PORT
+        - name: DJANGO_ALLOWED_HOSTS
+          valueFrom:
+            configMapKeyRef:
+              name: config-backend
+              key: DJANGO_ALLOWED_HOSTS

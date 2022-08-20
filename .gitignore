@@ -1,0 +1,3 @@
+secrets*.yml
+docker-compose.yml
+*frontend.yml
